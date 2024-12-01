@@ -31,28 +31,28 @@ router.route("/login").post(loginTraveler)
 router.route("/logout").post(verifyJWT, logoutTraveler)
 
 // Refresh Token API
-router.route("/refresh-token").post(refreshAccessToken)
+router.route("/refreshToken").post(refreshAccessToken)
 
 // Get Traveler Profile
-router.route("/current-Traveler").get(verifyJWT, curruntTravelerProfile)
+router.route("/currentTraveler").get(verifyJWT, curruntTravelerProfile)
 
 // Update Traveler Profile
-router.route("/update-profile").patch(verifyJWT, updateProfileDetails)
+router.route("/updateProfile").patch(verifyJWT, updateProfileDetails)
 
 // Change Password
-router.route("/change-password").post(verifyJWT, changePassword)
+router.route("/changePassword").post(verifyJWT, changePassword)
 
 // Update Avatar
-router.route("/update-avatar").patch(verifyJWT, upload.single("avatar"), updateAvatar);
+router.route("/updateAvatar").patch(verifyJWT, upload.single("avatar"), updateAvatar);
 
 // Delete Avatar
-router.route("/delete-avatar").delete(verifyJWT, deleteAvatar);
+router.route("/deleteAvatar").delete(verifyJWT, deleteAvatar);
 
 // Update Cover Image
-router.route("/update-coverImage").patch(verifyJWT, upload.single("coverImage"), updateCoverImage);
+router.route("/updateCoverImage").patch(verifyJWT, upload.single("coverImage"), updateCoverImage);
 
 // Delete Cover Image
-router.route("/delete-coverImage").delete(verifyJWT, deleteCoverImage);
+router.route("/deleteCoverImage").delete(verifyJWT, deleteCoverImage);
 
 // Privacy Tonggle For Make Public & Private profile 
 router.route("/toggle-privacy").patch(verifyJWT, togglePrivacy)

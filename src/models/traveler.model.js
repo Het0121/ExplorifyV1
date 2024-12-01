@@ -72,7 +72,7 @@ const travelerSchema = new mongoose.Schema(
         },
         savedPosts: [
             {
-                type: mongoose.Schema.Types.ObjectId,
+                type: Schema.Types.ObjectId,
                 ref: 'Post'
             }
         ],
