@@ -1,18 +1,18 @@
 import { Router } from "express";
 import {
 
-    registerTraveler,
-    loginTraveler,
-    logoutTraveler,
-    refreshAccessToken,
-    changePassword,
-    curruntTravelerProfile,
-    updateProfileDetails,
-    updateAvatar,
-    deleteAvatar,
-    updateCoverImage,
-    deleteCoverImage,
-    togglePrivacy
+  registerTraveler,
+  loginTraveler,
+  logoutTraveler,
+  refreshAccessToken,
+  changePassword,
+  curruntTravelerProfile,
+  updateProfileDetails,
+  updateAvatar,
+  deleteAvatar,
+  updateCoverImage,
+  deleteCoverImage,
+  togglePrivacy,
 
 } from "../controllers/traveler.controller.js";
 import { upload } from "../middlewares/multer.middleware.js"

@@ -15,10 +15,11 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 //routes import
-import travelerRouter from './routes/traveler.routes.js'
+import travelerRouter from './routes/traveler.routes.js';
+import agencyRouter from './routes/agency.routes.js';
 
 //routes declaration
 app.use("/api/v1/traveler", travelerRouter)
-
+app.use("/api/v1/agency", agencyRouter)
 
 export { app }
