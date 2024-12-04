@@ -30,23 +30,4 @@ const likeSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Prevent duplicate likes on posts, comments, and tweets
-likeSchema.pre("save", async function (next) {
-    // Check if the user already liked the specific entity (post, comment, or tweet)
-    const existingLike = await this.constructor.findOne({
-        $or: [
-            { post: this.post, "likedBy.userId": this.likedBy.userId },
-            { comment: this.comment, "likedBy.userId": this.likedBy.userId },
-            { tweet: this.tweet, "likedBy.userId": this.likedBy.userId },
-        ],
-    });
-
-    if (existingLike) {
-        return next(new Error("User has already liked this entity"));
-    }
-
-    next();
-});
-
-
 export const Like = mongoose.model("Like", likeSchema);

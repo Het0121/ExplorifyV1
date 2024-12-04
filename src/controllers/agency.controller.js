@@ -46,7 +46,7 @@ const registerAgency = asyncHandler(async (req, res) => {
 
   const agency = await Agency.create({
     agencyName,
-    userName : userName.toLowerCase(),
+    userName: userName.toLowerCase(),
     email : email.toLowerCase(),
     agencyPhoneNo,
     password

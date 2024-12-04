@@ -33,10 +33,3 @@ const commentSchema = new mongoose.Schema(
 
 
 export const Comment = mongoose.model('Comment', commentSchema);
-
-commentSchema.pre('save', function (next) {
-    if (!this.post && !this.tweet) {
-        return next(new Error('A comment must be associated with either a post or a tweet.'));
-    }
-    next();
-});
