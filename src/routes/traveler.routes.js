@@ -13,6 +13,7 @@ import {
   updateCoverImage,
   deleteCoverImage,
   togglePrivacy,
+  getUserProfile
 
 } from "../controllers/traveler.controller.js";
 import { upload } from "../middlewares/multer.middleware.js"
@@ -56,5 +57,8 @@ router.route("/deleteCoverImage").delete(verifyJWT, deleteCoverImage);
 
 // Privacy Tonggle For Make Public & Private profile 
 router.route("/toggle-privacy").patch(verifyJWT, togglePrivacy)
+
+// Get User Profile by Search
+router.route("/profile/:userName").get(verifyJWT, getUserProfile);
 
 export default router

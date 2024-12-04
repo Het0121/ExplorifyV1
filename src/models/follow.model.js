@@ -26,11 +26,3 @@ const followerFollowingSchema = new Schema({
 }, { timestamps: true });
 
 export const FollowerFollowing = mongoose.model("FollowerFollowing", followerFollowingSchema);
-
-// Custom validation to prevent users from following themselves
-followerFollowingSchema.pre('save', function (next) {
-    if (this.follower.userId.equals(this.following.userId)) {
-        return next(new Error("User cannot follow themselves"));
-    }
-    next();
-});

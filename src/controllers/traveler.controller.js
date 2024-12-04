@@ -1,6 +1,8 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js"
 import { Traveler } from "../models/traveler.model.js"
+import { Agency } from "../models/agency.model.js";
+import { FollowerFollowing } from "../models/follow.model.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
@@ -486,6 +488,182 @@ const togglePrivacy = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { private: traveler.private }, message));
 });
 
+// Get User profile
+const getUserProfile = asyncHandler(async (req, res) => {
+  const { userName } = req.params;
+
+  if (!userName?.trim()) {
+    throw new ApiError(400, "Username is missing");
+  }
+
+  // Determine user and user type
+  let user = await Traveler.findOne({ userName: userName.toLowerCase() });
+  let userType = "Traveler";
+
+  if (!user) {
+    user = await Agency.findOne({ userName: userName.toLowerCase() });
+    userType = "Agency";
+  }
+
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
+  }
+
+  // Aggregation to fetch followers and followings
+  const userProfile = await FollowerFollowing.aggregate([
+    {
+      $match: {
+        $or: [
+          {
+            "follower.userId": user._id,
+            "follower.userType": userType
+          },
+          {
+            "following.userId": user._id,
+            "following.userType": userType
+          }
+        ],
+      },
+    },
+    {
+      $facet: {
+        followers: [
+          {
+            $match: {
+              "following.userId": user._id,
+              "following.userType": userType
+            },
+          },
+          {
+            $lookup: {
+              from: "travelers",
+              localField: "follower.userId",
+              foreignField: "_id",
+              as: "followerTraveler",
+            },
+          },
+          {
+            $lookup: {
+              from: "agencies",
+              localField: "follower.userId",
+              foreignField: "_id",
+              as: "followerAgency",
+            },
+          },
+          {
+            $addFields: {
+              userDetails: {
+                $cond: {
+                  if: { $eq: ["$follower.userType", "Traveler"] },
+                  then: { $arrayElemAt: ["$followerTraveler", 0] },
+                  else: { $arrayElemAt: ["$followerAgency", 0] },
+                },
+              },
+            },
+          },
+          { $project: { userDetails: 1, _id: 0 } },
+        ],
+        followings: [
+          {
+            $match: { "follower.userId": user._id, "follower.userType": userType },
+          },
+          {
+            $lookup: {
+              from: "travelers",
+              localField: "following.userId",
+              foreignField: "_id",
+              as: "followingTraveler",
+            },
+          },
+          {
+            $lookup: {
+              from: "agencies",
+              localField: "following.userId",
+              foreignField: "_id",
+              as: "followingAgency",
+            },
+          },
+          {
+            $addFields: {
+              userDetails: {
+                $cond: {
+                  if: { $eq: ["$following.userType", "Traveler"] },
+                  then: { $arrayElemAt: ["$followingTraveler", 0] },
+                  else: { $arrayElemAt: ["$followingAgency", 0] },
+                },
+              },
+            },
+          },
+          { $project: { userDetails: 1, _id: 0 } },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        followersCount: { $size: "$followers" },
+        followingsCount: { $size: "$followings" },
+      },
+    },
+    {
+      $project: {
+        followers: "$followers.userDetails",
+        followings: "$followings.userDetails",
+        followersCount: 1,
+        followingsCount: 1,
+      },
+    },
+  ]);
+
+  if (!userProfile?.length) {
+    throw new ApiError(404, "User profile aggregation failed");
+  }
+
+  // Prepare response based on user type
+  let profileData = {};
+  if (userType === "Traveler") {
+    profileData = {
+      fullName: user.fullName,
+      userName: user.userName,
+      avatar: user.avatar,
+      coverImage: user.coverImage,
+      bio: user.bio,
+      website: user.website,
+      posts: user.posts || [], // Assuming posts exist in the Traveler schema
+      tweets: user.tweets || [], // Assuming tweets exist in the Traveler schema
+      followers: userProfile[0]?.followers || [],
+      followings: userProfile[0]?.followings || [],
+      followersCount: userProfile[0]?.followersCount || 0,
+      followingsCount: userProfile[0]?.followingsCount || 0,
+    };
+  } else if (userType === "Agency") {
+    profileData = {
+      agencyName: user.agencyName,
+      ownerName: user.ownerName,
+      userName: user.userName,
+      email: user.email,
+      agencyPhoneNo: user.agencyPhoneNo,
+      avatar: user.avatar,
+      coverImage: user.coverImage,
+      city: user.city,
+      state: user.state,
+      bio: user.bio,
+      website: user.website,
+      address: user.address,
+      posts: user.posts || [], 
+      tweets: user.tweets || [], 
+      packages: user.packages || [],
+      followers: userProfile[0]?.followers || [],
+      followings: userProfile[0]?.followings || [],
+      followersCount: userProfile[0]?.followersCount || 0,
+      followingsCount: userProfile[0]?.followingsCount || 0,
+    };
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, profileData, "User profile fetched successfully")
+  );
+});
+
 
 export {
 
@@ -501,5 +679,6 @@ export {
   updateCoverImage,
   deleteCoverImage,
   togglePrivacy,
+  getUserProfile
 
 }
