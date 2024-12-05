@@ -16,11 +16,9 @@ const postSchema = new mongoose.Schema(
         },
         image: {
             type: String,
-            required: true,
         },
         video: {
             type: String,
-            required: true,
         },
         thumbnail: {
             type: String,

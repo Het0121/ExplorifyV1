@@ -18,11 +18,14 @@ app.use(cookieParser())
 import travelerRouter from './routes/traveler.routes.js';
 import agencyRouter from './routes/agency.routes.js';
 import followRoutes from "./routes/follow.routes.js";
+import postRoutes from "./routes/post.routes.js";
 
 //routes declaration
 app.use("/api/v1/traveler", travelerRouter)
 app.use("/api/v1/agency", agencyRouter)
-app.use("/api/follow", followRoutes);
+app.use("/api/v1/follow", followRoutes);
+app.use("/api/v1/posts", postRoutes);
+
 
 export { app }
 
