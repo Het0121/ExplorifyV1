@@ -1,36 +1,49 @@
 import mongoose, { Schema } from "mongoose";
 
 const ownerSchema = new mongoose.Schema(
-    {
-        ownerName: {
-            type: String,
-            required: true,
-        },
-        email: {
-            type: String,
-            required: true,
-            unique: true,
-            lowercase: true,
-            trim: true,
-        },
-        phoneNo: {
-            type: [String],
-            required: true,
-        },
-        gender: {
-            type: String,
-            enum: ["male", "female", "other"],
-            default: "other", // Set a default value
-        },
-        dob: {
-            type: Date,
-        },
-        avatar: {
-            type: String,
-            required: true,
-        },
+  {
+    ownerNames: { // Multiple names, max 3 names
+      type: [String],
+      required: true,
+      validate: [arrayLimit, "You can only have up to 3 names"],
     },
-    { timestamps: true }
+    agency: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      required: true,
+  },
+  
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    phoneNo: { // Multiple phone numbers, max 3 numbers
+      type: [String],
+      required: true,
+      validate: [arrayLimit, "You can only have up to 3 phone numbers"],
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+      default: "",
+    },
+    dob: {
+      type: Date,
+    },
+    avatar: {
+      type: String,
+      required: false, // Avatar is optional now
+    },
+  },
+  { timestamps: true }
 );
+
+// Custom validator for limiting array length to 3
+function arrayLimit(val) {
+  return val.length <= 3;
+}
 
 export const Owner = mongoose.model("Owner", ownerSchema);
