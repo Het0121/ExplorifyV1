@@ -64,6 +64,9 @@ const agencySchema = new mongoose.Schema(
             type: Date,
             default: "",
         },
+        refreshToken: {
+            type: String
+        },
     },
     { timestamps: true }
 );
