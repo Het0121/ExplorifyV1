@@ -196,26 +196,32 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 // Change Agency Password
 const changePassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
+  const { oldPassword, newPassword, confirmNewPassword } = req.body;
 
   // Validate request fields
-  if (!oldPassword || !newPassword?.trim()) {
-    throw new ApiError(400, "Old password and new password are required and cannot be empty");
+  if (!oldPassword || !newPassword?.trim() || !confirmNewPassword?.trim()) {
+    throw new ApiError(400, "Old password, new password, and confirmation are required and cannot be empty");
   }
 
-  // Fetch the traveler
+  // Validate new password and confirmation match
+  if (newPassword !== confirmNewPassword) {
+    throw new ApiError(400, "New password and confirmation password do not match");
+  }
+
+  // Fetch the agency (single DB call)
   const agency = await Agency.findById(req.agency?._id);
   if (!agency) {
-    throw new ApiError(404, "agency not found");
+    throw new ApiError(404, "Agency not found");
   }
 
-  // Validate old password
-  if (!(await agency.isPasswordCorrect(oldPassword))) {
+  // Validate old password and prevent password reuse in one block
+  const isOldPasswordCorrect = await agency.isPasswordCorrect(oldPassword);
+  if (!isOldPasswordCorrect) {
     throw new ApiError(400, "Invalid old password");
   }
 
-  // Prevent password reuse
-  if (await agency.isPasswordCorrect(newPassword)) {
+  const isNewPasswordSameAsOld = await agency.isPasswordCorrect(newPassword);
+  if (isNewPasswordSameAsOld) {
     throw new ApiError(400, "New password must be different from the old password");
   }
 
@@ -225,6 +231,7 @@ const changePassword = asyncHandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, {}, "Password changed successfully"));
 });
+
 
 
 // Get Agency Profile
@@ -377,7 +384,7 @@ const deleteAvatar = asyncHandler(async (req, res) => {
     }
 
     // Set the avatar field to an empty string
-    agency.avatar = "";
+    agency.avatar = "defaultImg.jpg";
     await agency.save();
 
     return res
@@ -461,7 +468,7 @@ const deleteCoverImage = asyncHandler(async (req, res) => {
     }
 
     // Set the avatar field to an empty string
-    agency.coverImage = "";
+    agency.coverImage = "defaultImg.jpg";
     await agency.save();
 
     return res

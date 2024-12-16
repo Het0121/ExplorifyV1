@@ -198,26 +198,32 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 // Change Traveler Password
 const changePassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
+  const { oldPassword, newPassword, confirmNewPassword } = req.body;
 
   // Validate request fields
-  if (!oldPassword || !newPassword?.trim()) {
-    throw new ApiError(400, "Old password and new password are required and cannot be empty");
+  if (!oldPassword || !newPassword?.trim() || !confirmNewPassword?.trim()) {
+    throw new ApiError(400, "Old password, new password, and confirmation are required and cannot be empty");
   }
 
-  // Fetch the traveler
+  // Validate new password and confirmation match
+  if (newPassword !== confirmNewPassword) {
+    throw new ApiError(400, "New password and confirmation password do not match");
+  }
+
+  // Fetch the traveler (single DB call)
   const traveler = await Traveler.findById(req.traveler?._id);
   if (!traveler) {
     throw new ApiError(404, "Traveler not found");
   }
 
-  // Validate old password
-  if (!(await traveler.isPasswordCorrect(oldPassword))) {
+  // Validate old password and prevent password reuse in one block
+  const isOldPasswordCorrect = await traveler.isPasswordCorrect(oldPassword);
+  if (!isOldPasswordCorrect) {
     throw new ApiError(400, "Invalid old password");
   }
 
-  // Prevent password reuse
-  if (await traveler.isPasswordCorrect(newPassword)) {
+  const isNewPasswordSameAsOld = await traveler.isPasswordCorrect(newPassword);
+  if (isNewPasswordSameAsOld) {
     throw new ApiError(400, "New password must be different from the old password");
   }
 
@@ -380,7 +386,7 @@ const deleteAvatar = asyncHandler(async (req, res) => {
     }
 
     // Set the avatar field to an empty string
-    traveler.avatar = "";
+    traveler.avatar = "defaultImg.jpg";
     await traveler.save();
 
     return res
@@ -464,7 +470,7 @@ const deleteCoverImage = asyncHandler(async (req, res) => {
     }
 
     // Set the avatar field to an empty string
-    traveler.coverImage = "";
+    traveler.coverImage = "defaultImg.jpg";
     await traveler.save();
 
     return res
