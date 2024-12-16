@@ -10,7 +10,6 @@ import { verifyUser } from "../middlewares/verifyUser.middleware.js";
 
 const router = Router()
 
-
 // Create a new tweet
 router.route("/createTweet").post(verifyUser, createTweet);
 
@@ -26,6 +25,6 @@ router.route("/:tweetId").patch(verifyUser, updateTweet);
 router.route("/:tweetId").delete(verifyUser, deleteTweet);
 
 // Retweet a tweet
-router.route("/:tweetId/retweet").post(verifyUser, retweet);
+router.route("/retweet/:tweetId").post(verifyUser, retweet);
 
 export default router;

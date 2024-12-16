@@ -34,7 +34,6 @@ app.use("/api/v1/tweets", tweetRoutes);
 app.use("/api/v1/likes", likeRoutes);
 app.use("/api/v1/comment", commentRoutes);
 
-
 export { app }
 
 // HEADERS

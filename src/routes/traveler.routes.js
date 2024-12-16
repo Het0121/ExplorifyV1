@@ -85,7 +85,8 @@ router.route("/updateCoverImage").patch(verifyJWT, upload.single("coverImage"), 
 router.route("/deleteCoverImage").delete(verifyJWT, deleteCoverImage);
 
 // Privacy Tonggle For Make Public & Private profile 
-// http://localhost:8000/api/v1/traveler/toggle-privacy// headers : Authorization bearer <access token>
+// http://localhost:8000/api/v1/traveler/toggle-privacy
+// headers : Authorization bearer <access token>
 // content-type : application/json
 router.route("/toggle-privacy").patch(verifyJWT, togglePrivacy)
 
@@ -96,3 +97,5 @@ router.route("/toggle-privacy").patch(verifyJWT, togglePrivacy)
 router.route("/profile/:userName").get(verifyJWT, getUserProfile);
 
 export default router
+
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzYwMzA0MTRkMDYxMjc1MzE5MTc0YjQiLCJwaG9uZU5vIjoiNzgwMTk5NzcyOSIsInVzZXJOYW1lIjoiaF9lX3RfMjEiLCJmdWxsTmFtZSI6IkhldCBQcmFqYXBhdGkiLCJpYXQiOjE3MzQzNTcxNDMsImV4cCI6MTczNDQ0MzU0M30.JBkuDQcDwsi8sTo9duwzIn37w5QcMwyqOvEQDkfAV0Y

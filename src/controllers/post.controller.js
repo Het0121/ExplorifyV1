@@ -75,58 +75,77 @@ const getAllPost = asyncHandler(async (req, res) => {
 const getPostById = asyncHandler(async (req, res) => {
     const { postId } = req.params;
 
+    // Validate postId
     if (!isValidObjectId(postId)) {
         throw new ApiError(400, "Invalid postId");
     }
 
-    const post = await Post.aggregate([
-        { $match: { _id: new mongoose.Types.ObjectId(postId) } },
-        {
-            $lookup: {
-                from: "travelers",
-                localField: "owner.userId",
-                foreignField: "_id",
-                as: "travelerDetails",
-            },
-        },
-        {
-            $lookup: {
-                from: "agencies",
-                localField: "owner.userId",
-                foreignField: "_id",
-                as: "agencyDetails",
-            },
-        },
-        {
-            $addFields: {
-                ownerDetails: {
-                    $cond: [
-                        { $eq: ["$owner.userType", "Traveler"] },
-                        { $arrayElemAt: ["$travelerDetails", 0] },
-                        { $arrayElemAt: ["$agencyDetails", 0] },
-                    ],
-                },
-            },
-        },
-        {
-            $project: {
-                travelerDetails: 0,
-                agencyDetails: 0,
-                ownerDetails: {
-                    fullName: 1,
-                    userName: 1,
-                    avatar: 1,
-                    agencyName: 1,
-                },
-            },
-        },
-    ]);
+    try {
+        // Aggregation pipeline to fetch the post with owner details
+        const post = await Post.aggregate([
+            // Match the post by ID
+            { $match: { _id: new mongoose.Types.ObjectId(postId) } },
 
-    if (!post.length) {
-        throw new ApiError(404, "Post not found");
+            // Lookup traveler details
+            {
+                $lookup: {
+                    from: "travelers",
+                    localField: "owner.userId",
+                    foreignField: "_id",
+                    as: "travelerDetails",
+                },
+            },
+
+            // Lookup agency details
+            {
+                $lookup: {
+                    from: "agencies",
+                    localField: "owner.userId",
+                    foreignField: "_id",
+                    as: "agencyDetails",
+                },
+            },
+
+            // Add owner details based on userType
+            {
+                $addFields: {
+                    ownerDetails: {
+                        $cond: [
+                            { $eq: ["$owner.userType", "Traveler"] },
+                            { $arrayElemAt: ["$travelerDetails", 0] },
+                            { $arrayElemAt: ["$agencyDetails", 0] },
+                        ],
+                    },
+                },
+            },
+
+            // Project only required fields
+            {
+                $project: {
+                    _id: 1, // Include post ID
+                    title: 1, // Example field: include post title (replace with actual field names)
+                    content: 1, // Example field: include post content (replace with actual field names)
+                    ownerDetails: {
+                        fullName: 1,
+                        userName: 1,
+                        avatar: 1,
+                        agencyName: 1,
+                    },
+                },
+            },
+        ]);
+
+        // Handle post not found
+        if (!post.length) {
+            throw new ApiError(404, "Post not found");
+        }
+
+        // Respond with the post data
+        res.status(200).json(new ApiResponse(200, post[0], "Post fetched successfully"));
+    } catch (error) {
+        // Handle unexpected errors
+        throw new ApiError(500, error.message || "An error occurred while fetching the post");
     }
-
-    res.status(200).json(new ApiResponse(200, post[0], "Post fetched successfully"));
 });
 
 

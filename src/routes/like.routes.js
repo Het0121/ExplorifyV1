@@ -8,7 +8,7 @@ import {
   getLikedPackage,
 } from '../controllers/like.controller.js';
 
-import { verifyUser } from '../middleware/auth.middleware.js';
+import { verifyUser } from '../middlewares/verifyUser.middleware.js';
 
 const router = Router();
 

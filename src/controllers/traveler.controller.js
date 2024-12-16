@@ -30,7 +30,6 @@ const generateAccessAndRefreshTokens = async (travelerId) => {
 const registerTraveler = asyncHandler(async (req, res) => {
 
   const { fullName, userName, email, phoneNo, password } = req.body
-  // console.log(fullName, userName, phoneNo, password);
 
   if (
     [fullName, userName, email, phoneNo, password].some((field) => field?.trim() === "")
@@ -199,24 +198,35 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 // Change Traveler Password
 const changePassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPassword } = req.body
+  const { oldPassword, newPassword } = req.body;
 
-
-
-  const traveler = await Traveler.findById(req.traveler?._id)
-  const isPasswordCorrect = await traveler.isPasswordCorrect(oldPassword)
-
-  if (!isPasswordCorrect) {
-    throw new ApiError(400, "Invalid old password")
+  // Validate request fields
+  if (!oldPassword || !newPassword?.trim()) {
+    throw new ApiError(400, "Old password and new password are required and cannot be empty");
   }
 
-  traveler.password = newPassword
-  await traveler.save({ validateBeforeSave: false })
+  // Fetch the traveler
+  const traveler = await Traveler.findById(req.traveler?._id);
+  if (!traveler) {
+    throw new ApiError(404, "Traveler not found");
+  }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Password changed successfully"))
-})
+  // Validate old password
+  if (!(await traveler.isPasswordCorrect(oldPassword))) {
+    throw new ApiError(400, "Invalid old password");
+  }
+
+  // Prevent password reuse
+  if (await traveler.isPasswordCorrect(newPassword)) {
+    throw new ApiError(400, "New password must be different from the old password");
+  }
+
+  // Update and save the new password
+  traveler.password = newPassword;
+  await traveler.save({ validateBeforeSave: false });
+
+  res.status(200).json(new ApiResponse(200, {}, "Password changed successfully"));
+});
 
 
 // Get Traveler Profile

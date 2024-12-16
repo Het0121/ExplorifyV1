@@ -23,7 +23,7 @@ router.route("/owners",).get( verifyAgencyJWT, ensureAgency, getAllOwnersWithAge
 router.route("/:ownerId").get( verifyAgencyJWT, ensureAgency, getOwnerById );
 
 // Update Owner Details
-router.patch("/:ownerId").patch( verifyAgencyJWT, ensureAgency, updateOwner);
+router.route("/:ownerId").patch( verifyAgencyJWT, ensureAgency, updateOwner);
 
 // Update Owner Avatar
 router.route("/:ownerId/avatar").patch(verifyAgencyJWT, ensureAgency, upload.single("avatar"), updateAvatar);
