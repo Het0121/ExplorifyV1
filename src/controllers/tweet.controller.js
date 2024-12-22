@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { Tweet } from "../models/tweet.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -134,7 +134,7 @@ const deleteTweet = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Unauthorized to delete this tweet");
   }
 
-  await tweet.remove();
+  await Tweet.deleteOne({ _id: tweetId });
 
   res
     .status(200)
@@ -173,3 +173,4 @@ export {
   deleteTweet,
   retweet,
 };
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzYxYjFlYzMzY2I0ZjVjZWJiYmQ2ZjIiLCJwaG9uZU5vIjoiNzgwMTk5NzcyOSIsInVzZXJOYW1lIjoiaF9lX3RfMjEiLCJmdWxsTmFtZSI6IkhldCBQcmFqYXBhdGkiLCJpYXQiOjE3MzQ0NTU3OTYsImV4cCI6MTczNDU0MjE5Nn0.g9ypk8fPt2cVUqZS_UeIhrgXST7GnIYo6BcLhm9-XUM

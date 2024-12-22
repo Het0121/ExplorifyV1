@@ -5,6 +5,7 @@ import { Agency } from "../models/agency.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 
+
 // Middleware to ensure the requester is an Agency
 const ensureAgency = (req, res, next) => {
     if (!req.agency) {
@@ -12,6 +13,7 @@ const ensureAgency = (req, res, next) => {
     }
     next();
 };
+
 
 // Create a new owner
 const createOwner = asyncHandler(async (req, res) => {
@@ -42,11 +44,12 @@ const createOwner = asyncHandler(async (req, res) => {
         gender,
         dob,
         avatar: avatar?.url || "",
-        agencyId: req.agency._id, // Set agencyId from the authenticated agency
+        agency: req.agency._id, // Set agencyId from the authenticated agency
     });
 
     return res.status(201).json(new ApiResponse(201, owner, "Owner created successfully"));
 });
+
 
 const getAllOwnersWithAgencyDetails = asyncHandler(async (req, res) => {
     const agencyId = req.agency._id; // Assuming the agency is accessible from req.agency
@@ -97,17 +100,19 @@ const getAllOwnersWithAgencyDetails = asyncHandler(async (req, res) => {
     });
 });
 
+
 // Get a single owner by ID
 const getOwnerById = asyncHandler(async (req, res) => {
     const { ownerId } = req.params;
 
-    const owner = await Owner.findById(ownerId).populate("agencyId", "agencyName username avatar");
+    const owner = await Owner.findById(ownerId).populate("agency", "agencyName userName avatar");
     if (!owner) {
         throw new ApiError(404, "Owner not found");
     }
 
     return res.status(200).json(new ApiResponse(200, owner, "Owner fetched successfully"));
 });
+
 
 // Update an owner
 const updateOwner = asyncHandler(async (req, res) => {
@@ -122,7 +127,7 @@ const updateOwner = asyncHandler(async (req, res) => {
     if (dob) updateData.dob = dob;
 
     const owner = await Owner.findOneAndUpdate(
-        { _id: ownerId, agencyId: req.agency._id },
+        { _id: ownerId, agency: req.agency._id },
         updateData,
         { new: true, runValidators: true }
     );
@@ -133,6 +138,7 @@ const updateOwner = asyncHandler(async (req, res) => {
 
     return res.status(200).json(new ApiResponse(200, owner, "Owner updated successfully"));
 });
+
 
 // Update owner avatar
 const updateAvatar = asyncHandler(async (req, res) => {
@@ -166,11 +172,12 @@ const updateAvatar = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, owner, "Avatar updated successfully"));
 });
 
+
 // Delete an owner
 const deleteOwner = asyncHandler(async (req, res) => {
     const { ownerId } = req.params;
 
-    const owner = await Owner.findOne({ _id: ownerId, agencyId: req.agency._id });
+    const owner = await Owner.findOne({ _id: ownerId, agency: req.agency._id });
     if (!owner) {
         throw new ApiError(404, "Owner not found or unauthorized to delete");
     }

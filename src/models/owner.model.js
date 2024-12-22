@@ -8,7 +8,7 @@ const ownerSchema = new mongoose.Schema(
       validate: [arrayLimit, "You can only have up to 3 names"],
     },
     agency: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Agency",
       required: true,
   },
@@ -27,7 +27,7 @@ const ownerSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ["male", "female", "other"],
+      enum: ["Male", "Female", "Other"],
       default: "",
     },
     dob: {

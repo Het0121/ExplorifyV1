@@ -1,279 +1,113 @@
-import mongoose from "mongoose";
-import { Like } from "../models/like.model.js";
-import { ApiError } from "../utils/ApiError.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import mongoose, { isValidObjectId } from "mongoose";
+import { Like } from "../models/like.model.js"; 
+import { ApiError } from "../utils/ApiError.js"; 
+import { ApiResponse } from "../utils/ApiResponse.js"; 
+import { asyncHandler } from "../utils/asyncHandler.js"; 
 
-// Helper function to calculate unique like count for a post
-const calculatePostLikeCount = async (postId) => {
+// Helper function to calculate unique like count for a given target (e.g., post, comment, etc.)
+const calculateLikeCount = async (targetId, targetType) => {
+    // Aggregate query to calculate unique likes
     const result = await Like.aggregate([
         {
             $match: {
-                post: mongoose.Types.ObjectId(postId)
-            }
-        }, // Match likes for the post
+                [targetType]: new mongoose.Types.ObjectId(targetId), // Convert targetId to ObjectId for matching
+            },
+        },
         {
             $group: {
-                _id: "$post",
-                uniqueLikes: { $addToSet: "$likedBy.userId" }
-            }
-        }, // Collect unique user IDs
+                _id: `$${targetType}`, // Group by the target (e.g., postId, commentId, etc.)
+                uniqueLikes: { $addToSet: "$likedBy.userId" }, // Add unique userId to avoid duplicates
+            },
+        },
         {
             $project: {
-                likeCount: { $size: "$uniqueLikes" }
-            }
-        }, // Count unique user IDs
+                likeCount: { $size: "$uniqueLikes" }, // Count the unique userIds to get like count
+            },
+        },
     ]);
-    return result[0]?.likeCount || 0; // Return like count or 0 if no likes
+    return result[0]?.likeCount || 0; // Return the like count (0 if no likes)
 };
 
-// Helper function to calculate unique like count for a comment
-const calculateCommentLikeCount = async (commentId) => {
-    const result = await Like.aggregate([
-        {
-            $match:
-            {
-                comment: mongoose.Types.ObjectId(commentId)
+// Generalized function to toggle likes on various target types (post, comment, tweet, package, etc.)
+const toggleLike = async (req, res, targetType) => {
+    const targetId = req.params[`${targetType}Id`]; // Get the targetId from the URL parameter
+    const { userId, userType } = req.body; // Get userId and userType from request body
 
-            }
-        }, // Match likes for the comment
-        {
-            $group: {
-                _id: "$comment",
-                uniqueLikes: { $addToSet: "$likedBy.userId" }
-            }
-        }, // Collect unique user IDs
-        {
-            $project: {
-                likeCount: { $size: "$uniqueLikes" }
-            }
-        }, // Count unique user IDs
-    ]);
-    return result[0]?.likeCount || 0; // Return like count or 0 if no likes
-};
-
-
-// Helper function to calculate unique like count for a tweet
-const calculateTweetLikeCount = async (tweetId) => {
-    const result = await Like.aggregate([
-        {
-            $match: {
-                tweet: mongoose.Types.ObjectId(tweetId)
-            }
-        }, // Match likes for the tweet
-        {
-            $group: {
-                _id: "$tweet",
-                uniqueLikes: { $addToSet: "$likedBy.userId" }
-            }
-        }, // Collect unique user IDs
-        {
-            $project: {
-                likeCount: { $size: "$uniqueLikes" }
-            }
-        }, // Count unique user IDs
-    ]);
-    return result[0]?.likeCount || 0; // Return like count or 0 if no likes
-};
-
-// Helper function to calculate unique like count for a package
-const calculatePackageLikeCount = async (packageId) => {
-    const result = await Like.aggregate([
-        {
-            $match: {
-                package: mongoose.Types.ObjectId(packageId)
-            }
-        }, // Match likes for the package
-        {
-            $group: {
-                _id: "$package",
-                uniqueLikes: { $addToSet: "$likedBy.userId" }
-            }
-        }, // Collect unique user IDs
-        {
-            $project: {
-                likeCount: { $size: "$uniqueLikes" }
-            }
-        }, // Count unique user IDs
-    ]);
-    return result[0]?.likeCount || 0; // Return like count or 0 if no likes
-};
-
-// Toggle like for a post
-const togglePostLike = asyncHandler(async (req, res) => {
-    const { postId } = req.params;
-    const { userId, userType } = req.body;
-
-    if (!mongoose.isValidObjectId(postId) || !mongoose.isValidObjectId(userId)) {
-        throw new ApiError(400, "Invalid postId or userId");
+    // Validate the targetId and userId to ensure they are valid ObjectIds
+    if (!isValidObjectId(targetId) || !isValidObjectId(userId)) {
+        throw new ApiError(400, `Invalid ${targetType}Id or userId`); // Return error if invalid
     }
 
-    // Check if the user has already liked the post
-    const existingLike = await Like.findOne({ post: postId, "likedBy.userId": userId });
+    const likeQuery = { [targetType]: targetId, "likedBy.userId": userId }; // Query to check if the user already liked this target
+    const existingLike = await Like.findOne(likeQuery); // Find if like already exists
 
+    // If like exists, delete it and update the like count
     if (existingLike) {
-        // If the user already liked the post, remove the like
-        await existingLike.deleteOne();
-        const likeCount = await calculatePostLikeCount(postId); // Recalculate like count
-        return res.status(200).json(new ApiResponse(200, { likeCount }, "Post unliked successfully."));
+        await existingLike.deleteOne(); // Remove the like
+        const likeCount = await calculateLikeCount(targetId, targetType); // Recalculate the like count
+        return res
+            .status(200)
+            .json(new ApiResponse(200, { likeCount }, `${targetType} unliked successfully.`)); // Send response
     } else {
-        // If the user hasn't liked the post, add the like
-        await Like.create({ post: postId, likedBy: { userId, userType } });
-        const likeCount = await calculatePostLikeCount(postId); // Recalculate like count
-        return res.status(201).json(new ApiResponse(201, { likeCount }, "Post liked successfully."));
+        // If like doesn't exist, create a new like and update the like count
+        await Like.create({ [targetType]: targetId, likedBy: { userId, userType } }); // Add a new like record
+        const likeCount = await calculateLikeCount(targetId, targetType); // Recalculate the like count
+        return res
+            .status(201)
+            .json(new ApiResponse(201, { likeCount }, `${targetType} liked successfully.`)); // Send response
     }
-});
+};
 
+// Specific handler functions for different target types
+const togglePostLike = asyncHandler(async (req, res) => toggleLike(req, res, "post"));
+const toggleCommentLike = asyncHandler(async (req, res) => toggleLike(req, res, "comment"));
+const toggleTweetLike = asyncHandler(async (req, res) => toggleLike(req, res, "tweet"));
+const togglePackageLike = asyncHandler(async (req, res) => toggleLike(req, res, "package"));
 
-// Toggle like for a comment
-const toggleCommentLike = asyncHandler(async (req, res) => {
-    const { commentId } = req.params;
-    const { userId, userType } = req.body;
+// Generalized function to get the liked items for a user
+const getLikedItems = async (req, res, targetType, collectionName) => {
+    const { userId } = req.body; // Get userId from the request body
 
-    if (!mongoose.isValidObjectId(commentId) || !mongoose.isValidObjectId(userId)) {
-        throw new ApiError(400, "Invalid commentId or userId");
-    }
-
-    // Check if the user has already liked the comment
-    const existingLike = await Like.findOne({ comment: commentId, "likedBy.userId": userId });
-
-    if (existingLike) {
-        // If the user already liked the comment, remove the like
-        await existingLike.deleteOne();
-        const likeCount = await calculateCommentLikeCount(commentId); // Recalculate like count
-        return res.status(200).json(new ApiResponse(200, { likeCount }, "Comment unliked successfully."));
-    } else {
-        // If the user hasn't liked the comment, add the like
-        await Like.create({ comment: commentId, likedBy: { userId, userType } });
-        const likeCount = await calculateCommentLikeCount(commentId); // Recalculate like count
-        return res.status(201).json(new ApiResponse(201, { likeCount }, "Comment liked successfully."));
-    }
-});
-
-// Toggle like for a tweet
-const toggleTweetLike = asyncHandler(async (req, res) => {
-    const { tweetId } = req.params;
-    const { userId, userType } = req.body;
-
-    if (!mongoose.isValidObjectId(tweetId) || !mongoose.isValidObjectId(userId)) {
-        throw new ApiError(400, "Invalid tweetId or userId");
+    // Validate the userId
+    if (!isValidObjectId(userId)) {
+        throw new ApiError(400, "Invalid userId"); // Return error if invalid
     }
 
-    // Check if the user has already liked the tweet
-    const existingLike = await Like.findOne({ tweet: tweetId, "likedBy.userId": userId });
-
-    if (existingLike) {
-        // If the user already liked the tweet, remove the like
-        await existingLike.deleteOne();
-        const likeCount = await calculateTweetLikeCount(tweetId); // Recalculate like count
-        return res.status(200).json(new ApiResponse(200, { likeCount }, "Tweet unliked successfully."));
-    } else {
-        // If the user hasn't liked the tweet, add the like
-        await Like.create({ tweet: tweetId, likedBy: { userId, userType } });
-        const likeCount = await calculateTweetLikeCount(tweetId); // Recalculate like count
-        return res.status(201).json(new ApiResponse(201, { likeCount }, "Tweet liked successfully."));
-    }
-});
-
-// Get all liked posts by a user
-const getLikedPost = asyncHandler(async (req, res) => {
-    const { userId } = req.body;
-
-    // Aggregate to find posts liked by the user
-    const likedPosts = await Like.aggregate([
+    // Aggregate query to find liked items by the user
+    const likedItems = await Like.aggregate([
         {
             $match: {
-                "likedBy.userId": mongoose.Types.ObjectId(userId),
-                post: { $exists: true }
-            }
+                "likedBy.userId": new mongoose.Types.ObjectId(userId), // Match likedBy userId
+                [targetType]: { $exists: true }, // Ensure the targetType field exists
+            },
         },
         {
             $lookup: {
-                from: "posts",
-                localField: "post",
-                foreignField: "_id",
-                as: "postDetails"
-            }
+                from: collectionName, // Join with the corresponding collection (e.g., posts, packages)
+                localField: targetType, // The targetType field (e.g., postId, packageId)
+                foreignField: "_id", // Match by _id field in the target collection
+                as: "details", // Include target collection details in the result
+            },
         },
-        {
-            $unwind: "$postDetails"
-        },
+        { $unwind: "$details" }, // Flatten the details array to get individual items
         {
             $project: {
-                _id: 0,
-                postId: "$post",
-                caption: "$postDetails.caption",
-                likeCount: { $size: "$likedBy.userId" }
-            }
-        }
+                _id: 0, // Exclude the default _id field from the result
+                id: `$${targetType}`, // Include targetId (e.g., postId, packageId)
+                details: 1, // Include the details from the target collection
+            },
+        },
     ]);
 
-    return res.status(200).json(new ApiResponse(200, likedPosts, "Liked posts fetched successfully."));
-});
+    // Return the liked items with the target details
+    return res
+        .status(200)
+        .json(new ApiResponse(200, likedItems, `Liked ${targetType}s fetched successfully.`));
+};
 
-// Toggle like for a package
-const togglePackageLike = asyncHandler(async (req, res) => {
-    const { packageId } = req.params;
-    const { userId, userType } = req.body;
-
-    if (!mongoose.isValidObjectId(packageId) || !mongoose.isValidObjectId(userId)) {
-        throw new ApiError(400, "Invalid packageId or userId");
-    }
-
-    // Check if the user has already liked the package
-    const existingLike = await Like.findOne({ package: packageId, "likedBy.userId": userId });
-
-    if (existingLike) {
-        // If the user already liked the package, remove the like
-        await existingLike.deleteOne();
-        const likeCount = await calculatePackageLikeCount(packageId); // Recalculate like count
-        return res.status(200).json(new ApiResponse(200, { likeCount }, "Package unliked successfully."));
-    } else {
-        // If the user hasn't liked the package, add the like
-        await Like.create({ package: packageId, likedBy: { userId, userType } });
-        const likeCount = await calculatePackageLikeCount(packageId); // Recalculate like count
-        return res.status(201).json(new ApiResponse(201, { likeCount }, "Package liked successfully."));
-    }
-});
-
-
-// Get all liked packages by a user
-const getLikedPackage = asyncHandler(async (req, res) => {
-    const { userId } = req.body;
-
-    // Aggregate to find packages liked by the user
-    const likedPackages = await Like.aggregate([
-        {
-            $match: {
-                "likedBy.userId": mongoose.Types.ObjectId(userId),
-                package: { $exists: true }
-            }
-        },
-        {
-            $lookup: {
-                from: "packages",
-                localField: "package",
-                foreignField: "_id",
-                as: "packageDetails"
-            }
-        },
-        {
-            $unwind: "$packageDetails"
-        },
-        {
-            $project: {
-                _id: 0,
-                packageId: "$package",
-                name: "$packageDetails.name",
-                likeCount: { $size: "$likedBy.userId" }
-            }
-        }
-    ]);
-
-    return res.status(200).json(new ApiResponse(200, likedPackages, "Liked packages fetched successfully."));
-});
-
-
+// Specific handler functions to get liked posts and liked packages for a user
+const getLikedPost = asyncHandler(async (req, res) => getLikedItems(req, res, "post", "posts"));
+const getLikedPackage = asyncHandler(async (req, res) => getLikedItems(req, res, "package", "packages"));
 
 export {
     togglePostLike,
@@ -281,5 +115,5 @@ export {
     toggleTweetLike,
     getLikedPost,
     togglePackageLike,
-    getLikedPackage
+    getLikedPackage,
 };

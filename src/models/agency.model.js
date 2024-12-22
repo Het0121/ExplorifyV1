@@ -35,9 +35,11 @@ const agencySchema = new mongoose.Schema(
         },
         avatar: {
             type: String,
+            default: "defaultImg.jpg"
         },
         coverImage: {
             type: String,
+            default: "defaultImg.jpg"
         },
         city: {
             type: String,
