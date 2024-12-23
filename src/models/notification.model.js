@@ -28,20 +28,13 @@ const notificationSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: [
-                'LIKE',
-                'COMMENT',
-                'FOLLOW',
-                'TWEET',
-                'BOOKING',
-                'NEW_PACKAGE',
-            ],
+            enum: ['LIKE', 'COMMENT', 'FOLLOW', 'TWEET', 'BOOKING', 'NEW_PACKAGE'],
             required: true,
         },
         relatedEntity: {
             type: Schema.Types.ObjectId,
             refPath: 'relatedEntityType',
-            required: true,
+            required: true
         },
         relatedEntityType: {
             type: String,
@@ -49,14 +42,17 @@ const notificationSchema = new mongoose.Schema(
         },
         message: {
             type: String,
+            required: true, // The message is required to describe the notification
         },
         isRead: {
             type: Boolean,
-            default: false,
+            default: false, // Notification is unread by default
         },
     },
-    { timestamps: true }
+    {
+        timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+        versionKey: false, // Optionally disable the versioning field (_v)
+    }
 );
 
 export const Notification = mongoose.model('Notification', notificationSchema);
-

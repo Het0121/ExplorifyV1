@@ -1,75 +1,58 @@
-import mongoose from "mongoose";
+import mongoose, {isValidObjectId} from "mongoose";
 import { Comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+    
 // Get all comments for a specific post, with pagination and owner population
 const getPostComments = asyncHandler(async (req, res) => {
     const { postId } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
-    // Calculate the number of items to skip for pagination
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+        throw new ApiError(400, "Invalid Post ID");
+    }
+
     const skip = (page - 1) * limit;
 
-    // Use aggregation pipeline to fetch the comments
     const comments = await Comment.aggregate([
-        {
-            $match: { post: mongoose.Types.ObjectId(postId) },  // Match comments for the specific post
-        },
+        { $match: { post: new mongoose.Types.ObjectId(postId) } },
         {
             $lookup: {
-                from: "travelers",  // Assuming `Traveler` model name is 'travelers'
+                from: "travelers",
                 localField: "owner.userId",
                 foreignField: "_id",
-                as: "ownerDetails",
-            },
-        },
-        {
-            $unwind: {
-                path: "$ownerDetails",
-                preserveNullAndEmptyArrays: true,  // In case the owner is an Agency, for example
+                as: "travelerDetails",
             },
         },
         {
             $lookup: {
-                from: "agencies",  // Assuming `Agency` model name is 'agencies'
+                from: "agencies",
                 localField: "owner.userId",
                 foreignField: "_id",
                 as: "agencyDetails",
             },
         },
         {
-            $unwind: {
-                path: "$agencyDetails",
-                preserveNullAndEmptyArrays: true,  // In case the owner is a Traveler, for example
-            },
-        },
-        {
             $project: {
                 content: 1,
                 createdAt: 1,
-                "ownerDetails._id": 1,
-                "ownerDetails.userName": 1,
-                "ownerDetails.avatar": 1,
-                "agencyDetails._id": 1,
-                "agencyDetails.agencyName": 1,
-                "agencyDetails.avatar": 1, // Include avatar from Agency
-                "agencyDetails.userName": 1, // Include userName from Agency
+                ownerDetails: {
+                    $cond: [
+                        { $eq: ["$owner.userType", "Traveler"] },
+                        { $arrayElemAt: ["$travelerDetails", 0] },
+                        { $arrayElemAt: ["$agencyDetails", 0] },
+                    ],
+                },
             },
         },
-        {
-            $skip: skip,  // Implement pagination
-        },
-        {
-            $limit: limit,  // Limit results per page
-        },
+        { $skip: skip },
+        { $limit: parseInt(limit) },
     ]);
 
-    // Count the total comments for the post to handle pagination in the response
-    const totalComments = await Comment.countDocuments({ post: mongoose.Types.ObjectId(postId) });
+    const totalComments = await Comment.countDocuments({ post: new mongoose.Types.ObjectId(postId) });
 
-    // Send the response with the comments and pagination data
     res.status(200).json(new ApiResponse(comments, totalComments, page, limit));
 });
 
@@ -79,20 +62,16 @@ const addComment = asyncHandler(async (req, res) => {
     const { content } = req.body;
     const { postId } = req.params;
 
-    if (!content) {
-        throw new ApiError(400, "Comment content is required.");
-    }
+    if (!content) throw new ApiError(400, "Comment content is required.");
 
-    const newComment = new Comment({
+    const newComment = await Comment.create({
         content,
         post: postId,
         owner: {
-            userType: req.user.userType, // assuming req.user contains user data (Traveler/Agency)
+            userType: req.userType,
             userId: req.user._id,
         },
     });
-
-    await newComment.save();
 
     res.status(201).json(new ApiResponse(newComment));
 });
@@ -102,23 +81,16 @@ const updateComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params;
     const { content } = req.body;
 
-    if (!content) {
-        throw new ApiError(400, "Comment content is required.");
-    }
+    if (!content) throw new ApiError(400, "Comment content is required.");
 
-    // Fetch the comment by ID
     const comment = await Comment.findById(commentId);
 
-    if (!comment) {
-        throw new ApiError(404, "Comment not found.");
-    }
+    if (!comment) throw new ApiError(404, "Comment not found.");
 
-    // Ensure the user is the owner of the comment
     if (comment.owner.userId.toString() !== req.user._id.toString()) {
         throw new ApiError(403, "You are not authorized to update this comment.");
     }
 
-    // Update the content of the comment
     comment.content = content;
     await comment.save();
 
@@ -126,22 +98,18 @@ const updateComment = asyncHandler(async (req, res) => {
 });
 
 // Delete a comment
+
 const deleteComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params;
 
-    // Fetch the comment by ID
     const comment = await Comment.findById(commentId);
 
-    if (!comment) {
-        throw new ApiError(404, "Comment not found.");
-    }
+    if (!comment) throw new ApiError(404, "Comment not found.");
 
-    // Ensure the user is the owner of the comment
     if (comment.owner.userId.toString() !== req.user._id.toString()) {
         throw new ApiError(403, "You are not authorized to delete this comment.");
     }
 
-    // Delete the comment
     await comment.remove();
 
     res.status(200).json(new ApiResponse(null, "Comment deleted successfully."));
@@ -152,4 +120,4 @@ export {
     addComment,
     updateComment,
     deleteComment,
-};
+}
