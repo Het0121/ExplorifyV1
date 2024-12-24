@@ -133,7 +133,6 @@ const getUserFollower = asyncHandler(async (req, res) => {
 });
 
 
-
 // Get user following 
 const getUserFollowing = asyncHandler(async (req, res) => {
     const { userName } = req.params;

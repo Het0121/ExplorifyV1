@@ -51,6 +51,7 @@ const createOwner = asyncHandler(async (req, res) => {
 });
 
 
+// Get all owners with agency details
 const getAllOwnersWithAgencyDetails = asyncHandler(async (req, res) => {
     const agencyId = req.agency._id; // Assuming the agency is accessible from req.agency
 

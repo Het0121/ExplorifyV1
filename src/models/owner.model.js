@@ -11,8 +11,7 @@ const ownerSchema = new mongoose.Schema(
       type: Schema.Types.ObjectId,
       ref: "Agency",
       required: true,
-  },
-  
+    },
     email: {
       type: String,
       required: true,
@@ -38,7 +37,9 @@ const ownerSchema = new mongoose.Schema(
       required: false, // Avatar is optional now
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
 // Custom validator for limiting array length to 3

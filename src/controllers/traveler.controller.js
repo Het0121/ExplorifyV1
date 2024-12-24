@@ -42,7 +42,7 @@ const registerTraveler = asyncHandler(async (req, res) => {
   })
 
   if (existedTraveler) {
-    throw new ApiError(409, "Traveler with Phone No or username already exists")
+    throw new ApiError(409, "Traveler with Phone No or username or Email already exists")
   }
 
 
@@ -503,6 +503,7 @@ const togglePrivacy = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, { private: traveler.private }, message));
 });
+
 
 // Get User profile
 const getUserProfile = asyncHandler(async (req, res) => {

@@ -1,5 +1,6 @@
 import { Router } from "express";
-import {
+import { 
+
     ensureAgency,
     createOwner,
     getAllOwnersWithAgencyDetails,
@@ -7,11 +8,13 @@ import {
     updateOwner,
     updateAvatar,
     deleteOwner,
+
 } from "../controllers/owner.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyAgencyJWT } from "../middlewares/agencyAuth.middleware.js";
 
 const router = Router();
+
 
 // Register User
 router.route("/register").post(verifyAgencyJWT, ensureAgency, upload.single("avatar"), createOwner);

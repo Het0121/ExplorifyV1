@@ -1,22 +1,19 @@
 import { Router } from 'express';
 import {
+
   togglePostLike,
   toggleCommentLike,
   toggleTweetLike,
   getLikedPost,
   togglePackageLike,
   getLikedPackage,
+
 } from '../controllers/like.controller.js';
-
 import { verifyJWT } from '../middlewares/auth.middleware.js';
-import { verifyAgencyJWT } from '../middlewares/agencyAuth.middleware.js'
-const router = Router();
+import { verifyAgencyJWT } from '../middlewares/agencyAuth.middleware.js';
 
-// req.body
-// {
-//     "userId": "your_user_id",
-//     "userType": "Traveler" // or "Agency"
-// }
+
+const router = Router();
 
 
 // Middleware to verify user type (Traveler or Agency) before accessing routes
@@ -47,22 +44,22 @@ const verifyUser = async (req, res, next) => {
   }
 };
 
-// Route to toggle like for a post
+// Toggle like for a post
 router.route('/posts/:postId/like').post(verifyUser, togglePostLike);
 
-// Route to toggle like for a comment
+// Toggle like for a comment
 router.route('/comments/:commentId/like').post(verifyUser, toggleCommentLike);
 
-// Route to toggle like for a tweet
+// Toggle like for a tweet
 router.route('/tweets/:tweetId/like').post(verifyUser, toggleTweetLike);
 
-// Route to get all liked posts of a user
+// Get all liked posts of a user
 router.route('/posts/liked').get(verifyUser, getLikedPost);
 
-// Route to toggle like for a package
+// Toggle like for a package
 router.route('/packages/:packageId/like').post(verifyUser, togglePackageLike);
 
-// Route to get all liked packages of a user
+// Get all liked packages of a user
 router.route('/packages/liked').get(verifyUser, getLikedPackage);
 
 export default router;

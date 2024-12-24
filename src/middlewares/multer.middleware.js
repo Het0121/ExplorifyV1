@@ -1,5 +1,6 @@
 import multer from "multer";
 
+
 // Configure Multer disk storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -9,6 +10,7 @@ const storage = multer.diskStorage({
     cb(null, file.originalname); // Use the original file name
   },
 });
+
 
 // Define allowed file MIME types (Images and Videos)
 const allowedFileTypes = [
@@ -21,6 +23,7 @@ const allowedFileTypes = [
   "video/mpeg",   // MPEG4 video
   "video/quicktime", // MOV video
 ];
+
 
 // Add file size limit (10MB) and file type restriction
 export const upload = multer({

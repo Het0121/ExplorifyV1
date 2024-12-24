@@ -40,7 +40,9 @@ const postSchema = new mongoose.Schema(
             default: false,
         },
     },
-    { timestamps: true }
+    {
+        timestamps: true
+    }
 );
 
 // Exporting the Post model

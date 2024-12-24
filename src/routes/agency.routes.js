@@ -20,6 +20,7 @@ import { verifyAgencyJWT } from "../middlewares/agencyAuth.middleware.js";
 
 const router = Router()
 
+
 // Register Agency
 router.route("/register").post(registerAgency)
 

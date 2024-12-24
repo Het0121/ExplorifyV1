@@ -83,6 +83,7 @@ const travelerSchema = new mongoose.Schema(
     }
 );
 
+
 // Pre-save hook to hash the password before saving
 travelerSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
@@ -91,10 +92,12 @@ travelerSchema.pre("save", async function (next) {
     next();
 });
 
+
 // Method to check if password is correct
 travelerSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
+
 
 // Method to generate access token
 travelerSchema.methods.generateAccessToken = function () {
@@ -111,6 +114,7 @@ travelerSchema.methods.generateAccessToken = function () {
         }
     );
 };
+
 
 // Method to generate refresh token
 travelerSchema.methods.generateRefreshToken = function () {

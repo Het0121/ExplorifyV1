@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js"; 
 import { asyncHandler } from "../utils/asyncHandler.js"; 
 
+
 // Helper function to calculate unique like count for a given target (e.g., post, comment, etc.)
 const calculateLikeCount = async (targetId, targetType) => {
     // Aggregate query to calculate unique likes
@@ -27,6 +28,7 @@ const calculateLikeCount = async (targetId, targetType) => {
     ]);
     return result[0]?.likeCount || 0; // Return the like count (0 if no likes)
 };
+
 
 // Generalized function to toggle likes on various target types (post, comment, tweet, package, etc.)
 const toggleLike = async (req, res, targetType) => {
@@ -58,11 +60,13 @@ const toggleLike = async (req, res, targetType) => {
     }
 };
 
+
 // Specific handler functions for different target types
 const togglePostLike = asyncHandler(async (req, res) => toggleLike(req, res, "post"));
 const toggleCommentLike = asyncHandler(async (req, res) => toggleLike(req, res, "comment"));
 const toggleTweetLike = asyncHandler(async (req, res) => toggleLike(req, res, "tweet"));
 const togglePackageLike = asyncHandler(async (req, res) => toggleLike(req, res, "package"));
+
 
 // Generalized function to get the liked items for a user
 const getLikedItems = async (req, res, targetType, collectionName) => {
@@ -105,9 +109,11 @@ const getLikedItems = async (req, res, targetType, collectionName) => {
         .json(new ApiResponse(200, likedItems, `Liked ${targetType}s fetched successfully.`));
 };
 
+
 // Specific handler functions to get liked posts and liked packages for a user
 const getLikedPost = asyncHandler(async (req, res) => getLikedItems(req, res, "post", "posts"));
 const getLikedPackage = asyncHandler(async (req, res) => getLikedItems(req, res, "package", "packages"));
+
 
 export {
     togglePostLike,

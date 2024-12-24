@@ -40,7 +40,7 @@ const registerAgency = asyncHandler(async (req, res) => {
   })
 
   if (existedAgency) {
-    throw new ApiError(409, "Agency with Phone No or username already exists")
+    throw new ApiError(409, "Agency with Phone No or username or Email already exists")
   }
 
 

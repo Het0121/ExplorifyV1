@@ -30,6 +30,7 @@ const bookingSchema = new Schema(
     { timestamps: true }
 );
 
+
 // Middleware to update available slots upon booking
 bookingSchema.pre("save", async function (next) {
     const booking = this;
@@ -47,6 +48,7 @@ bookingSchema.pre("save", async function (next) {
     await packageDoc.save();
     next();
 });
+
 
 export const Package = mongoose.model("Package", packageSchema);
 export const Booking = mongoose.model("Booking", bookingSchema);

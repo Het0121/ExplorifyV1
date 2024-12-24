@@ -70,7 +70,9 @@ const agencySchema = new mongoose.Schema(
             type: String
         },
     },
-    { timestamps: true }
+    {
+        timestamps: true
+    }
 );
 
 
@@ -82,10 +84,12 @@ agencySchema.pre("save", async function (next) {
     next();
 });
 
+
 // Method to check if password is correct
 agencySchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
+
 
 // Method to generate access token
 agencySchema.methods.generateAccessToken = function () {
@@ -102,6 +106,7 @@ agencySchema.methods.generateAccessToken = function () {
         }
     );
 };
+
 
 // Method to generate refresh token
 agencySchema.methods.generateRefreshToken = function () {

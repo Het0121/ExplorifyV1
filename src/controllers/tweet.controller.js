@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+
 // Create a new tweet
 const createTweet = asyncHandler(async (req, res) => {
   const { content } = req.body;
@@ -37,6 +38,7 @@ const createTweet = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, tweet, "Tweet created successfully"));
 });
+
 
 // Get tweets by user with aggregation
 const getUserTweets = asyncHandler(async (req, res) => {
@@ -84,6 +86,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, tweets, "Tweets fetched successfully"));
 });
 
+
 // Update a tweet
 const updateTweet = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
@@ -117,6 +120,7 @@ const updateTweet = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedTweet, "Tweet updated successfully"));
 });
 
+
 // Delete a tweet
 const deleteTweet = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
@@ -140,6 +144,7 @@ const deleteTweet = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, null, "Tweet deleted successfully"));
 });
+
 
 // Retweet a tweet
 const retweet = asyncHandler(async (req, res) => {
@@ -173,4 +178,3 @@ export {
   deleteTweet,
   retweet,
 };
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzYxYjFlYzMzY2I0ZjVjZWJiYmQ2ZjIiLCJwaG9uZU5vIjoiNzgwMTk5NzcyOSIsInVzZXJOYW1lIjoiaF9lX3RfMjEiLCJmdWxsTmFtZSI6IkhldCBQcmFqYXBhdGkiLCJpYXQiOjE3MzQ0NTU3OTYsImV4cCI6MTczNDU0MjE5Nn0.g9ypk8fPt2cVUqZS_UeIhrgXST7GnIYo6BcLhm9-XUM

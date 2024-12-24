@@ -76,6 +76,7 @@ const addComment = asyncHandler(async (req, res) => {
     res.status(201).json(new ApiResponse(newComment));
 });
 
+
 // Update a comment
 const updateComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params;
@@ -97,8 +98,8 @@ const updateComment = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(comment));
 });
 
-// Delete a comment
 
+// Delete a comment
 const deleteComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params;
 

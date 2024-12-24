@@ -1,6 +1,6 @@
 import { Router } from "express";
-import mongoose from "mongoose";
 import {
+
     getAllPost,
     publishAPost,
     getPostById,
@@ -8,6 +8,7 @@ import {
     updatePost,
     deletePost,
     togglePublishStatus,
+
 } from "../controllers/post.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import  { verifyAgencyJWT } from "../middlewares/agencyAuth.middleware.js";

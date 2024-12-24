@@ -75,13 +75,17 @@ const packageSchema = new Schema(
             required: true,
         },
     },
-    { timestamps: true }
+    {
+        timestamps: true
+    }
 );
+
 
 // Helper function to validate photo array limit
 function arrayLimit(val) {
     return val.length <= 4;
 }
+
 
 // Middleware to ensure `availableSlots` does not exceed `maxSlots`
 packageSchema.pre("save", function (next) {
@@ -90,5 +94,6 @@ packageSchema.pre("save", function (next) {
     }
     next();
 });
+
 
 export const Package = mongoose.model("Package", packageSchema);
