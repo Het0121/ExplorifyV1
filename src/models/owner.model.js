@@ -34,7 +34,7 @@ const ownerSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      required: false, // Avatar is optional now
+      required: false, // Avatar is optional 
     },
   },
   {

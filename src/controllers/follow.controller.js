@@ -2,12 +2,13 @@ import mongoose, { isValidObjectId } from "mongoose";
 import { Traveler } from "../models/traveler.model.js";
 import { Agency } from "../models/agency.model.js";
 import { FollowerFollowing } from "../models/follow.model.js";
+import { Notification } from "../models/notification.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 
-// toggle for follow and unfollow user
+// Toggle for follow and unfollow user
 const toggleFollow = asyncHandler(async (req, res) => {
     const { userName } = req.params;
 
@@ -46,20 +47,36 @@ const toggleFollow = asyncHandler(async (req, res) => {
     if (existingFollow) {
         // Unfollow if already following
         await FollowerFollowing.findByIdAndDelete(existingFollow._id);
-        return res
-            .status(200)
-            .json(new ApiResponse(200, {}, "User unfollowed successfully"));
+        return res.status(200).json(new ApiResponse(200, {}, "User unfollowed successfully"));
     } else {
         // Follow if not already following
-        await FollowerFollowing.create({
+        const followEntity = await FollowerFollowing.create({
             follower: { userId: currentUserId, userType: currentUserType },
             following: { userId: user._id, userType: userType },
         });
-        return res
-            .status(200)
-            .json(new ApiResponse(200, {}, "User followed successfully"));
+
+        // Ensure we get the correct name or agency name for the sender
+        const senderName = req.traveler ? req.traveler.userName : req.agency?.userName;
+        
+        if (!senderName) {
+            throw new ApiError(400, "Sender name is missing.");
+        }
+
+        const notificationMessage = `${senderName} started following you.`;
+
+        await Notification.create({
+            recipient: { userId: user._id, userType },
+            sender: { userId: currentUserId, userType: currentUserType },
+            type: "FOLLOW",
+            message: notificationMessage,
+            relatedEntity: followEntity._id,            // Set relatedEntity to the follow entity's ID
+            relatedEntityType: "Follow",                // Type is "Follow"
+        });
+
+        return res.status(200).json(new ApiResponse(200, {}, "User followed successfully"));
     }
 });
+
 
 
 // get user followers 
