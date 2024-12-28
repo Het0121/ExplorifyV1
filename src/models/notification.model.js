@@ -38,7 +38,7 @@ const notificationSchema = new mongoose.Schema(
         },
         relatedEntityType: {
             type: String,
-            enum: ['Post', 'Comment', 'Tweet', 'Package', 'Follow', 'Booking']
+            enum: ['post', 'comment', 'tweet', 'package', 'follow', 'booking']
         },
         message: {
             type: String,

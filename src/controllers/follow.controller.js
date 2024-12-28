@@ -70,7 +70,7 @@ const toggleFollow = asyncHandler(async (req, res) => {
             type: "FOLLOW",
             message: notificationMessage,
             relatedEntity: followEntity._id,            // Set relatedEntity to the follow entity's ID
-            relatedEntityType: "Follow",                // Type is "Follow"
+            relatedEntityType: "follow",                // Type is "Follow"
         });
 
         return res.status(200).json(new ApiResponse(200, {}, "User followed successfully"));
