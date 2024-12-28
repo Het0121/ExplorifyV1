@@ -1,32 +1,33 @@
-import { Router } from 'express';
+import express from 'express';
 import {
     requestBooking,
     acceptBookingRequest,
     getBookings,
     getBookingById,
     updateBookingStatus,
-    cancelBooking,
+    cancelBooking
 } from '../controllers/booking.controller.js';
-import { verifyAgencyJWT } from '../middlewares/agencyAuth.middleware.js';
+import { ensureAgency } from '../controllers/package.controller.js'; 
+import { verifyJWT } from '../middlewares/auth.middleware.js'; 
 
-const router = Router();
+const router = express.Router();
 
-// Route to request a booking 
-router.route('/request').post(requestBooking);
+// Route for creating a booking request (Traveler)
+router.post('/request', verifyJWT, requestBooking);
 
-// Route to accept a booking request
-router.route('/accept/:notificationId').patch(verifyAgencyJWT, acceptBookingRequest);
+// Route for accepting a booking request (Agency/Administrator)
+router.patch('/accept/:bookingId', ensureAgency, acceptBookingRequest);
 
-// Route to get all bookings 
-router.route('/all').get(verifyAgencyJWT, getBookings);
+// Route for getting all bookings (Admin or Agency)
+router.get('/', ensureAgency, getBookings);
 
-// Route to get a booking by ID 
-router.route('/:id').get(verifyAgencyJWT, getBookingById);
+// Route for getting a specific booking by ID (Admin, Agency or Traveler)
+router.get('/:bookingId', ensureAgency, getBookingById);
 
-// Route to update the booking status
-router.route('/status/:id').patch(verifyAgencyJWT, updateBookingStatus);
+// Route for updating the booking status (Admin or Agency)
+router.patch('/:bookingId/status', ensureAgency, updateBookingStatus);
 
-// Route to cancel a booking
-router.route('/cancel/:id').delete(verifyAgencyJWT, cancelBooking);
+// Route for canceling a booking (Traveler or Admin)
+router.delete('/:bookingId', verifyJWT, cancelBooking);
 
 export default router;

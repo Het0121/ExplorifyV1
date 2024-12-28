@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+    ensureAgency,
     createPackage,
     updatePackage,
     deletePackage,
@@ -15,6 +16,7 @@ const router = Router();
 router.route(
     "/createpackage").post(
     verifyAgencyJWT,
+    ensureAgency,
     upload.fields([
         {
             name: "photos",
