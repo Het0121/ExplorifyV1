@@ -10,7 +10,7 @@ const packageSchema = new Schema(
         agency: {
             type: Schema.Types.ObjectId,
             ref: "Agency",
-            required: true,
+            required: true
         },
         mainLocation: {
             type: String,
@@ -49,17 +49,20 @@ const packageSchema = new Schema(
             {
                 day: {
                     type: String,
-                    required: true
+                    required: true,
                 },
                 description: {
                     type: String,
-                    required: true
+                    required: true,
                 },
             },
         ],
         photos: {
             type: [String],
-            validate: [arrayLimit, "{PATH} exceeds the limit of 4"],
+            validate: {
+                validator: (val) => val.length <= 4,
+                message: "{PATH} exceeds the limit of 4",
+            },
         },
         price: {
             type: Number,
@@ -73,27 +76,51 @@ const packageSchema = new Schema(
         availableSlots: {
             type: Number,
             required: true,
+            validate: {
+                validator: function (value) {
+                    return value >= 0 && value <= this.maxSlots;
+                },
+                message: "Available slots must be between 0 and max slots.",
+            },
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
         },
     },
     {
-        timestamps: true
+        timestamps: true,
     }
 );
 
+// Middleware to ensure `startDate` is before `endDate`
+packageSchema.pre("validate", function (next) {
+    if (this.startDate >= this.endDate) {
+        return next(new Error("End date must be after start date."));
+    }
+    next();
+});
 
-// Helper function to validate photo array limit
-function arrayLimit(val) {
-    return val.length <= 4;
-}
-
-
-// Middleware to ensure `availableSlots` does not exceed `maxSlots`
+// Middleware to set `availableSlots` to `maxSlots` if not provided
 packageSchema.pre("save", function (next) {
-    if (this.availableSlots > this.maxSlots) {
+    if (this.isNew && !this.availableSlots) {
         this.availableSlots = this.maxSlots;
     }
     next();
 });
 
+// Middleware to ensure `availableSlots` does not exceed `maxSlots`
+packageSchema.pre("save", function (next) {
+    if (this.availableSlots > this.maxSlots) {
+        return next(new Error("Available slots cannot exceed maximum slots."));
+    }
+    next();
+});
+
+// Virtual property to check if booking slots are active
+packageSchema.virtual("isBookingActive").get(function () {
+    const currentDate = new Date();
+    return this.availableSlots > 0 && this.startDate <= currentDate && this.endDate >= currentDate;
+});
 
 export const Package = mongoose.model("Package", packageSchema);

@@ -20,10 +20,12 @@ import agencyRouter from './routes/agency.routes.js';
 import followRouter from "./routes/follow.routes.js";
 import postRouter from "./routes/post.routes.js";
 import ownerRouter from "./routes/owner.routes.js";
-import tweetRoutes from "./routes/tweet.routes.js";
-import likeRoutes from "./routes/like.routes.js";
-import commentRoutes from "./routes/comment.routes.js";
-import notificationRoutes from "./routes/notification.routes.js";
+import tweetRouter from "./routes/tweet.routes.js";
+import likeRouter from "./routes/like.routes.js";
+import commentRouter from "./routes/comment.routes.js";
+import notificationRouter from "./routes/notification.routes.js";
+import packageRouter from "./routes/package.routes.js";
+import bookingRouter from "./routes/booking.routes.js";
 
 //routes declaration
 app.use("/api/v1/traveler", travelerRouter);
@@ -31,9 +33,11 @@ app.use("/api/v1/agency", agencyRouter);
 app.use("/api/v1/follow", followRouter);
 app.use("/api/v1/posts", postRouter);
 app.use("/api/v1/agency/owner", ownerRouter);
-app.use("/api/v1/tweets", tweetRoutes);
-app.use("/api/v1/likes", likeRoutes);
-app.use("/api/v1/comment", commentRoutes);
-app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/tweets", tweetRouter);
+app.use("/api/v1/likes", likeRouter);
+app.use("/api/v1/comment", commentRouter);
+app.use("/api/v1/notifications", notificationRouter);
+app.use("/api/v1/packages", packageRouter);
+app.use("/api/v1/bookings", bookingRouter);
 
 export { app }

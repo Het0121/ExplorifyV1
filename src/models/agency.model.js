@@ -6,7 +6,7 @@ const agencySchema = new mongoose.Schema(
     {
         agencyName: {
             type: String,
-            required: true,
+            required: [true, "Agency name is required"]
         },
         ownerName: {
             type: Schema.Types.ObjectId,
@@ -23,10 +23,12 @@ const agencySchema = new mongoose.Schema(
             type: String,
             required: true,
             unique: true,
+            match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ // Simple email validation
         },
         agencyPhoneNo: {
             type: String,
             required: true,
+            match: /^[0-9]{10}$/ // for a 10-digit phone number
         },
         password: {
             type: String,
