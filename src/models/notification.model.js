@@ -28,7 +28,7 @@ const notificationSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ['LIKE', 'COMMENT', 'FOLLOW', 'TWEET', 'BOOKING', 'NEW_PACKAGE', 'BOOKING_REQUEST'],
+            enum: ['LIKE', 'COMMENT', 'FOLLOW', 'TWEET', 'BOOKING', 'NEW_PACKAGE', 'BOOKING_REQUEST', 'BOOKING_REJECTED', 'BOOKING_CONFIRMED'],
             required: true,
         },
         relatedEntity: {
